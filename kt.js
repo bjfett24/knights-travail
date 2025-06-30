@@ -1,31 +1,3 @@
-[
-[
-    [[1, 2], [2, 1]], [[2, 0], [2, 2]], [[1, 0], [2, 1]]
-],
-[
-    [[0, 2], [2, 2]], [], [[0, 0], [2, 0]]
-],
-[
-    [[0, 1], [1, 2]], [[0, 0], [0, 2]], [[0, 1], [1, 0]]
-]
-]
-
-/* for [3, 3]
-upRight: [4, 5] -> [+1, +2];
-rightUp: [5, 4] -> [+2, +1];
-
-rightDown: [5, 2] -> [+2, -1];
-downRight: [4, 1] -> [+1, -2];
-
-downLeft: [2, 1] -> [-1, -2];
-leftDown: [1, 2] -> [-2, -1];
-
-leftUp: [1, 4] -> [-2, +1];
-upLeft: [2, 5] -> [-1, +2];
-
-*/
-
-
 function generateGraph() {
     
     const graph = [];
@@ -80,8 +52,70 @@ function generateGraph() {
 }
 
 
-const graph = generateGraph();
+function knightMoves(start, end) {
+    const graph = generateGraph();
+    const queue = [];
+    queue.push([start, 0, null]);
+    const visited = new Array(8).fill(null).map(() => new Array(8).fill(false));
+    visited[start[0]][start[1]] = true;
 
-console.log(graph);
+    const pathParents = new Array(8).fill(null).map(() => new Array(8).fill(null));
 
 
+    while (queue.length > 0) {
+        const [currentPos, currentMoves, parentPos] = queue.shift();
+        const [currentX, currentY] = currentPos;
+
+        if (parentPos != null) {
+            pathParents[currentX][currentY] = parentPos;
+        }
+
+
+        if (currentX === end[0] && currentY === end[1]) {
+            console.log('You have found the shortest path!');
+            const path = [];
+            let backtrackPos = end;
+            while (backtrackPos !== null) {
+                path.unshift(backtrackPos); // Add to the beginning to get the path in correct order
+                if (backtrackPos[0] === start[0] && backtrackPos[1] === start[1]) {
+                     break;
+                }
+                backtrackPos = pathParents[backtrackPos[0]][backtrackPos[1]];
+
+            }
+            if (path.length > 0 && (path[0][0] !== start[0] || path[0][1] !== start[1])) {
+                path.unshift(start);
+            }
+            const result = {moves: currentMoves, path: path};
+            return convertToString(result);
+        }
+
+        const neighbors = graph[currentX][currentY];
+
+        for (let neighbor of neighbors) {
+            if (neighbor[0] !== null) {
+                const [neighborX, neighborY] = neighbor;
+                if (!visited[neighborX][neighborY]) {
+                    visited[neighborX][neighborY] = true; 
+                    queue.push([neighbor, currentMoves + 1, currentPos]); 
+                }
+            }
+        }
+    }
+   
+    throw new Error('Then end is unreachable');
+
+       
+}
+
+function convertToString(obj) {
+    let pathStr = '';
+
+    for (let item of obj.path) {
+        pathStr += `[${item}]\n`;
+    }
+    
+    return `You made it in ${obj.moves} moves! Here's your path:\n${pathStr}`;
+}
+
+console.log(knightMoves([0, 0], [7, 7]));
